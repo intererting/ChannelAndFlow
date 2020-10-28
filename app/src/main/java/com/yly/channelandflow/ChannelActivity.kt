@@ -25,7 +25,7 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 
 //        tickerChannel()
 
-        channelWithFlow()
+//        channelWithFlow()
     }
 
     private fun channelWithFlow() {

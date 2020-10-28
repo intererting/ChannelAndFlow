@@ -2,14 +2,11 @@ package com.yly.channelandflow
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
+import kotlinx.android.synthetic.main.activity_flow.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.collect
-import kotlin.coroutines.coroutineContext
-import kotlin.system.measureTimeMillis
+import java.math.BigInteger
 
 class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 
@@ -17,17 +14,16 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
         super.onCreate(savedInstanceState)
 
 
-        lifecycleScope.launchWhenCreated {
-            kotlin.coroutines.coroutineContext[Job]?.invokeOnCompletion {
-                loge("invokeOnCompletion")
-            }
-
-            launch {
-                repeat(100){
-                    delay(1000)
-                }
-            }
+        flowTest.setOnClickListener {
+            testSharedFlow()
         }
+//            testStateFlow()
+
+//        testThreadSwitch()
+
+//        testFibo()
+
+//        testLifeCycleScope()
 
 //        testSequence()
 //
@@ -39,8 +35,99 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 //            flowCreation()
 //        }
 
-        flowOp()
+//        flowOp()
 
+    }
+
+    private fun testStateFlow() {
+        GlobalScope.launch {
+            val stateFlow = MutableStateFlow("first")
+            stateFlow.tryEmit("second")
+            stateFlow.asStateFlow().collect {
+                println(it)
+            }
+            stateFlow.value = "third"
+        }
+    }
+
+    private fun testThreadSwitch() {
+        //2020-10-28 10:55:54.941 5329-5355/com.yly.channelandflow I/System.out: main Thread[DefaultDispatcher-worker-2,5,main]
+        //2020-10-28 10:55:54.942 5329-5355/com.yly.channelandflow I/System.out: map  Thread[DefaultDispatcher-worker-2,5,main]
+        //2020-10-28 10:55:54.944 5329-5329/com.yly.channelandflow I/System.out: onEach  Thread[main,5,main]
+        flow {
+            println("main ${Thread.currentThread()}")
+            emit("1")
+        }.map {
+            println("map  ${Thread.currentThread()}")
+            it
+        }.flowOn(Dispatchers.IO)
+            .onEach {
+                println("onEach  ${Thread.currentThread()}")
+            }.launchIn(CoroutineScope(Dispatchers.Main))
+    }
+
+    private fun testFibo() {
+        GlobalScope.launch {
+            fibonacci().take(10).collect {
+            }
+        }
+    }
+
+    private fun fibonacci(): Flow<BigInteger> = flow {
+        var x = BigInteger.ZERO
+        var y = BigInteger.ONE
+        while (true) {
+            emit(x)
+            x = y.also {
+                y += x
+            }
+            println("x    $x")
+            println("y    $y")
+        }
+    }
+
+
+    /**
+     * sharedFlow和stateFlow的区别
+     *
+     * State flow always has an initial value, replays one most recent value to new subscribers, does not buffer any
+     * more values, but keeps the last emitted one, and does not support [resetReplayCache][MutableSharedFlow.resetReplayCache].
+     *
+     * Use [SharedFlow] when you need a [StateFlow] with tweaks in its behavior such as extra buffering, replaying more
+     * values, or omitting the initial value.
+     */
+    private fun testSharedFlow() {
+        GlobalScope.launch {
+            val shared = MutableSharedFlow<String>(
+                replay = 2, //缓存最近3个
+            )
+            shared.map {
+                it
+            }.flowOn(Dispatchers.IO)//flowOn只会影响到之前的操作符的执行环境
+                .onEach {
+                    println(it)
+                }
+                .launchIn(CoroutineScope(Dispatchers.Main))
+            shared.tryEmit("1")
+            shared.tryEmit("2")
+            shared.tryEmit("3")
+            shared.tryEmit("4")
+            shared.tryEmit("5")
+        }
+    }
+
+    private fun testLifeCycleScope() {
+        lifecycleScope.launchWhenCreated {
+            kotlin.coroutines.coroutineContext[Job]?.invokeOnCompletion {
+                loge("invokeOnCompletion")
+            }
+
+            launch {
+                repeat(100) {
+                    delay(1000)
+                }
+            }
+        }
     }
 
     private fun flowOp() {
