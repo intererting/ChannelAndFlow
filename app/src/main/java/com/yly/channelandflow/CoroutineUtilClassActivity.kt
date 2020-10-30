@@ -1,11 +1,13 @@
 package com.yly.channelandflow
 
 import android.os.Bundle
+import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_coroutines_util_class.*
 import kotlinx.coroutines.*
 import java.lang.Exception
 import java.lang.RuntimeException
+import kotlin.coroutines.resume
 
 /**
  * @author    yiliyang
@@ -24,9 +26,31 @@ class CoroutineUtilClassActivity : AppCompatActivity(R.layout.activity_coroutine
 
 //            testLazyJob()
 
-            testCancel()
+//            testCancel()
 
 //            testCompleteable()
+
+            testScheduler()
+        }
+    }
+
+    private fun testScheduler() {
+        GlobalScope.launch {
+
+
+            suspendCancellableCoroutine<String> {
+                it.resume("haha")
+            }
+
+
+
+            launch(CoroutineName("first")) {
+                println("first coroutines")
+                delay(100000)
+            }
+            launch(CoroutineName("second")) {
+                println("second coroutines")
+            }
         }
     }
 

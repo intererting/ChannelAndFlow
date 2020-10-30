@@ -23,7 +23,7 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 
 //        sendChannel()
 
-//        tickerChannel()
+        tickerChannel()
 
 //        channelWithFlow()
     }
@@ -54,7 +54,7 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
         val channel = ticker(delayMillis = 1000)
         lifecycleScope.launchWhenCreated {
             for (data in channel) {
-                loge(channel)
+                loge(data)
             }
         }
     }
