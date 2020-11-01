@@ -19,7 +19,6 @@ import java.lang.Exception
  * @version   1.0
  * @since     1.0
  */
-
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class SelectActivity : AppCompatActivity(R.layout.activity_select) {
 
