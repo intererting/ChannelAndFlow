@@ -15,8 +15,10 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 
 
         flowTest.setOnClickListener {
-            testSharedFlow()
+            testCancelable()
         }
+//            testSharedFlow()
+
 //            testStateFlow()
 
 //        testThreadSwitch()
@@ -37,6 +39,16 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 
 //        flowOp()
 
+    }
+
+    private fun testCancelable() {
+        //sampleStart
+        fun main() = runBlocking<Unit> {
+            (1..5).asFlow().cancellable().collect { value ->
+                if (value == 3) cancel()
+                println(value)
+            }
+        }
     }
 
     private fun testStateFlow() {
