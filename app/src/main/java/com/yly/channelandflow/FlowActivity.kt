@@ -7,6 +7,7 @@ import kotlinx.android.synthetic.main.activity_flow.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.math.BigInteger
+import kotlin.system.measureTimeMillis
 
 class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 
@@ -15,35 +16,48 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 
 
         flowTest.setOnClickListener {
-            testCancelable()
-        }
+//            testCancelable()
+
 //            testSharedFlow()
 
 //            testStateFlow()
 
-//        testThreadSwitch()
+//            testThreadSwitch()
 
-//        testFibo()
+//            testFibo()
 
-//        testLifeCycleScope()
+//            testLifeCycleScope()
 
-//        testSequence()
-//
-//        basicFlow()
+//            testSequence()
+//            basicFlow()
 
 //        cancelFlow()
 
-//        lifecycleScope.launchWhenCreated {
 //            flowCreation()
-//        }
 
-//        flowOp()
+//            testBus()
 
+            flowOp()
+        }
+    }
+
+    private fun testBus() {
+        val eventBus = EventBus()
+        lifecycleScope.launch {
+            eventBus.produceEvent("click")
+            eventBus.events.onEach {
+                loge("1  $it")
+            }.launchIn(MainScope())
+            eventBus.events.onEach {
+                loge("2  $it")
+            }.launchIn(MainScope())
+            eventBus.produceEvent("click2")
+        }
     }
 
     private fun testCancelable() {
         //sampleStart
-        fun main() = runBlocking<Unit> {
+        fun main() = runBlocking {
             (1..5).asFlow().cancellable().collect { value ->
                 if (value == 3) cancel()
                 println(value)
@@ -55,13 +69,16 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
         GlobalScope.launch {
             val stateFlow = MutableStateFlow("first")
             stateFlow.tryEmit("second")
-            stateFlow.asStateFlow().collect {
+            stateFlow.collect {
                 println(it)
             }
             stateFlow.value = "third"
         }
     }
 
+    /**
+     * flowOn和LaunchIn的原理，可以参看processon
+     */
     private fun testThreadSwitch() {
         //2020-10-28 10:55:54.941 5329-5355/com.yly.channelandflow I/System.out: main Thread[DefaultDispatcher-worker-2,5,main]
         //2020-10-28 10:55:54.942 5329-5355/com.yly.channelandflow I/System.out: map  Thread[DefaultDispatcher-worker-2,5,main]
@@ -111,7 +128,7 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
     private fun testSharedFlow() {
         GlobalScope.launch {
             val shared = MutableSharedFlow<String>(
-                replay = 2, //缓存最近3个
+                replay = 2, //缓存最近2个
             )
             shared.map {
                 it
@@ -120,11 +137,16 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
                     println(it)
                 }
                 .launchIn(CoroutineScope(Dispatchers.Main))
+            //tryEmit如果返回true则是发送成功，如果返回false则是发送失败，表示这个时候缓存不够，正在挂起，数据依然会被保存，但是这个
+            //时候就很危险，因为如果replay很小，这个时候很容易会造成数据被覆盖
             shared.tryEmit("1")
-            shared.tryEmit("2")
-            shared.tryEmit("3")
-            shared.tryEmit("4")
-            shared.tryEmit("5")
+            shared.emit("2")
+            delay(100)
+            shared.emit("3")
+            delay(100)
+            shared.emit("4")
+            delay(100)
+            shared.emit("5")
         }
     }
 
@@ -144,7 +166,10 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 
     private fun flowOp() {
         lifecycleScope.launchWhenCreated {
-//            (0..2).asFlow().map { performRequest(it) }.collect { loge(it) }
+//            (0..2).asFlow().map {
+//                println("xx")
+//                return@map it * 2
+//            }.collect { loge(it) }
 
 //            (0..2).asFlow().transform {
 //                emit("start")
@@ -172,21 +197,39 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 //            val time = measureTimeMillis {
 //                (0..5).asFlow().map {
 //                    delay(100)
-//                    it * 2
+//                    it
 //                }.conflate().collect {
 //                    delay(300)
 //                    loge(it)
 //                }
 //            }
-//
+////
 //            loge(time)
 
 
+            //shareIn
+
+            //started = SharingStarted.Eagerly
+            //started = SharingStarted.Lazily
+            //started = SharingStarted.WhileSubscribed
+//            val shareFlow = (0..2).asFlow().shareIn(
+//                scope = lifecycleScope, started = SharingStarted.Eagerly,
+//                replay = 1// 如果不为0，那么会有一个Array存储
+//            )
+//            delay(100)
+//            shareFlow.onEach {
+//                loge("1  $it")
+//            }.launchIn(MainScope())
+//            shareFlow.onEach {
+//                loge("2  $it")
+//            }.launchIn(MainScope())
+
+
 //            val time = measureTimeMillis {
-//                (0..5).asFlow().map {
+//                (0..2).asFlow().map {
 //                    delay(100)
-//                    it * 2
-//                }.flowOn(Dispatchers.IO).collectLatest {
+//                    it
+//                }.collectLatest {
 //                    loge(it)
 //                    delay(300)
 //                    loge("after delay $it")
