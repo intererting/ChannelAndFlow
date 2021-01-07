@@ -6,7 +6,9 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.flow.*
+import java.lang.RuntimeException
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.log
 
 class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 
@@ -16,34 +18,49 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 //        basicChannel()
 
 //        produceChannel()
-
+//
 //        pipeChannel()
 
 //        replacePipeWithIterator()
 
 //        sendChannel()
 
-        tickerChannel()
+//        tickerChannel()
 
 //        channelWithFlow()
+
+//        testExceptionHandler()
     }
 
+    private fun testExceptionHandler() {
+        val handler = CoroutineExceptionHandler { _, throwable -> loge(throwable.message) }
+        lifecycleScope.launch(handler) {
+//            throw RuntimeException("haha exception")
+            async {
+                testExceptionHandlerFun()
+            }.await()
+        }
+    }
+
+    suspend fun testExceptionHandlerFun(): String {
+        throw  RuntimeException("async exception")
+    }
+
+    @ExperimentalCoroutinesApi
     private fun channelWithFlow() {
         lifecycleScope.launchWhenCreated {
-//            channelFlow {
-//                launch(Dispatchers.IO) {
-//                    send(1)
-//                }
-//                launch(Dispatchers.Main) {
-//                    send("a")
-//                }
-//            }.collect { loge(it) }
-
-            flow {
+            channelFlow {
                 launch(Dispatchers.IO) {
-                    emit(1)
+                    send(1)
+                }
+                launch(Dispatchers.Main) {
+                    send("a")
                 }
             }.collect { loge(it) }
+
+//            flow {
+//                emit(1)
+//            }.collect { loge(it) }
         }
 
         //flow 和channelflow的区别：channelflow中可以使用协程发送数据
@@ -92,6 +109,10 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
             }
         }
 
+//        sequence {
+//            yield(1)
+//        }
+
 //        for (data in iterator) {
 //            loge(data)
 //        }
@@ -105,26 +126,26 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
     private fun pipeChannel() {
 
         lifecycleScope.launchWhenCreated {
-//            val channel = square(produceNumbers())
-//            repeat(5) {
-//                loge(channel.receive())
-//            }
+            val channel = square(produceNumbers())
+            repeat(5) {
+                loge(channel.receive())
+            }
 //            coroutineContext.cancelChildren()
 
 
-            var curent = produceNumbers()
-            repeat(5) {
-                val value = curent.receive()
-                loge(value)
-                curent = filter(curent, value)
-            }
+//            var curent = produceNumbers()
+//            repeat(5) {
+//                val value = curent.receive()
+//                loge(value)
+//                curent = filter(curent, value)
+//            }
         }
 
     }
 
     fun CoroutineScope.produceNumbers() = produce {
-//        var x = 1
-        var x = 2
+        var x = 1
+//        var x = 2
         while (true) send(x++) // infinite stream of integers starting from 1
     }
 
@@ -140,8 +161,10 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun produceChannel() {
         lifecycleScope.launch {
+            //produce会自动在协程结束的时候调用close
             val channel: ReceiveChannel<Int> = produce {
                 for (i in 0..5) {
                     send(i)
@@ -152,46 +175,54 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 //                loge(data)
 //            }
 
+//            loge(channel.isClosedForReceive) //true
+//            for (data in channel) {
+            //没有数据
+//                loge(data)
+//            }
+
             //consumeEach底层会cancel掉管道，如果多协程取数据的话就会不安全
 //            channel.consumeEach {
 //                loge(it)
 //            }
 
-//            channel.consumeAsFlow().collectLatest {
-//                loge(it)
-//            }
+            channel.consumeAsFlow().collect {
+                loge(it)
+            }
+            loge("consume over")
         }
     }
 
     private fun basicChannel() {
         val channel = Channel<Int>(3)
         lifecycleScope.launchWhenCreated {
-            for (i in 0 until 10) {
+            for (i in 0 until 4) {
                 //suspend
+//                println("send  $i")//0 1 2 3因为buffer为3
                 channel.send(i)
             }
-            channel.close()
+//            channel.close()
             loge("send finish")
         }
+
         lifecycleScope.launchWhenCreated {
-//            repeat(11) {
+            channel.receiveAsFlow().collectLatest {
+                delay(10)
+                //collectLatest只会接收到flow里面最新的数据
+                loge(it)
+            }
+
+            //                for (data in channel) {
+//                    loge(data)
+//                }
+
             repeat(10) {
-                //suspend
+//            suspend
 //                loge(channel.receive())
 
 //                loge(channel.receiveOrNull())
 
-//                channel.receiveAsFlow().collectLatest {
-////                    delay(10)
-//                    //collectLatest只会接收到flow里面最新的数据
-//                    loge(it)
-//                }
-
-//                for (data in channel) {
-//                    loge(data)
-//                }
             }
-            loge("receive finish")
         }
     }
 }
