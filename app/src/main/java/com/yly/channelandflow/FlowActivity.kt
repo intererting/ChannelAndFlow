@@ -283,7 +283,7 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 //            }.catch { loge(it) }
 //                .collect { loge(it) }
 
-            //onCompletion可以捕获到最后collect中的异常
+//            onCompletion可以捕获到最后collect中的异常
 //            (0..2).asFlow().onCompletion { error ->
 //                loge("onCompletion  $error")
 //            }.collect {
@@ -292,6 +292,9 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 //                }
 //                loge(it)
 //            }
+
+            //catch和onCompletion异常处理的区别：
+            //catch把下游异常给排除了，如果是下游异常直接抛出
 
 
 //            (0..2).asFlow().debounce(100).collect {

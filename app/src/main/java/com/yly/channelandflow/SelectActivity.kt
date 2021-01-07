@@ -25,9 +25,9 @@ class SelectActivity : AppCompatActivity(R.layout.activity_select) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         selectBasic.setOnClickListener {
-//            testSelect()
+            testSelect()
 
-            selectWithTicker()
+//            selectWithTicker()
 
         }
     }
