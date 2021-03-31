@@ -6,9 +6,6 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.flow.*
-import java.lang.RuntimeException
-import kotlin.coroutines.suspendCoroutine
-import kotlin.math.log
 
 class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 
@@ -29,20 +26,20 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 
 //        channelWithFlow()
 
-//        testExceptionHandler()
+        testExceptionHandler()
     }
 
     private fun testExceptionHandler() {
         val handler = CoroutineExceptionHandler { _, throwable -> loge(throwable.message) }
         lifecycleScope.launch(handler) {
 //            throw RuntimeException("haha exception")
-            async {
+            withContext(Dispatchers.Default) {
                 testExceptionHandlerFun()
-            }.await()
+            }
         }
     }
 
-    suspend fun testExceptionHandlerFun(): String {
+    private fun testExceptionHandlerFun(): String {
         throw  RuntimeException("async exception")
     }
 
@@ -89,7 +86,7 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 
     }
 
-    fun CoroutineScope.testSendChannel(channel: SendChannel<Int>) {
+    private fun CoroutineScope.testSendChannel(channel: SendChannel<Int>) {
         launch {
             repeat(5) {
                 channel.send(it)
@@ -143,7 +140,7 @@ class ChannelActivity : AppCompatActivity(R.layout.activity_channel) {
 
     }
 
-    fun CoroutineScope.produceNumbers() = produce {
+    private fun CoroutineScope.produceNumbers() = produce {
         var x = 1
 //        var x = 2
         while (true) send(x++) // infinite stream of integers starting from 1

@@ -42,8 +42,6 @@ class CoroutineUtilClassActivity : AppCompatActivity(R.layout.activity_coroutine
                 it.resume("haha")
             }
 
-
-
             launch(CoroutineName("first")) {
                 println("first coroutines")
                 delay(100000)
@@ -124,5 +122,10 @@ class CoroutineUtilClassActivity : AppCompatActivity(R.layout.activity_coroutine
                 completableDeferred.completeExceptionally(RuntimeException("error"))
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mainScope.cancel()
     }
 }

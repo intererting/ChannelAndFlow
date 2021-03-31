@@ -8,11 +8,12 @@ class MyApplication : Application(), LifecycleObserver {
     override fun onCreate() {
         super.onCreate()
         //用来监听全局app状态
-//        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun applicationOnCreate() {
+        //只会被调用一次
         println("application onCreate")
     }
 

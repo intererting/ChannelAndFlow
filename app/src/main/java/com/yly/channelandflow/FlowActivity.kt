@@ -193,12 +193,13 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 //                loge("onEach  $it ${Thread.currentThread()}")
 //            }.launchIn(CoroutineScope(Dispatchers.IO))
 
-
+//
 //            val time = measureTimeMillis {
 //                (0..5).asFlow().map {
 //                    delay(100)
 //                    it
 //                }.conflate().collect {
+//                    loge("conflate $it")
 //                    delay(300)
 //                    loge(it)
 //                }
@@ -223,7 +224,6 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
 //            shareFlow.onEach {
 //                loge("2  $it")
 //            }.launchIn(MainScope())
-
 
 //            val time = measureTimeMillis {
 //                (0..2).asFlow().map {
@@ -296,8 +296,18 @@ class FlowActivity : AppCompatActivity(R.layout.activity_flow) {
             //catch和onCompletion异常处理的区别：
             //catch把下游异常给排除了，如果是下游异常直接抛出
 
-
-//            (0..2).asFlow().debounce(100).collect {
+//底层原理select
+//            flow {
+//                emit(1)
+//                delay(90)
+//                emit(2)
+//                delay(90)
+//                emit(3)
+//                delay(1010)
+//                emit(4)
+//                delay(1010)
+//                emit(5)
+//            }.debounce(1000).collect {
 //                loge(it)
 //            }
 

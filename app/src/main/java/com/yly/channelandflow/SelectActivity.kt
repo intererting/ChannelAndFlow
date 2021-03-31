@@ -58,7 +58,7 @@ class SelectActivity : AppCompatActivity(R.layout.activity_select) {
             repeat(10) {
                 selectFizzOrBuzz(fizz, buzz)
             }
-            coroutineContext.cancel()
+//            coroutineContext.cancel()
         }
     }
 }
